@@ -82,11 +82,12 @@ func main() {
 
 		// Check if there's a weapon in the room
 		if currentRoom.Weapon != nil {
-			fmt.Printf("You found a %s!\n", currentRoom.Weapon.Name)
-			fmt.Println("Do you want to equip it? (y/n)")
+			fmt.Printf("You found a %s (Damage: %d, Accuracy: %d%%)!\n", currentRoom.Weapon.Name, currentRoom.Weapon.Damage, currentRoom.Weapon.Accuracy)
+			fmt.Printf("Your current weapon: %s (Damage: %d, Accuracy: %d%%)\n", player.Weapon.Name, player.Weapon.Damage, player.Weapon.Accuracy)
+			fmt.Println("Enter 'equip' to equip the new weapon, or any other input to continue.")
 			var choice string
 			fmt.Scanln(&choice)
-			if choice == "y" {
+			if choice == "equip" {
 				player.Weapon = currentRoom.Weapon
 				currentRoom.Weapon = nil // Remove the weapon from the room
 				fmt.Printf("You equipped the %s.\n", player.Weapon.Name)
