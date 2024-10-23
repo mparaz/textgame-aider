@@ -12,7 +12,7 @@ type Character struct {
 	HitPoints int
 	Mana      int
 	Strength  int
-	// Add other attributes as needed
+	Weapon    *Weapon // Pointer to the character's current weapon
 }
 
 // Monster represents a random enemy
@@ -31,10 +31,18 @@ type Spell struct {
 	EffectValue int // For non-damaging spells like healing or buffs
 }
 
+// Weapon represents a weapon that can be equipped
+type Weapon struct {
+	Name     string
+	Damage   int
+	Accuracy int // Chance to hit the target
+}
+
 // Room represents a single room in the dungeon
 type Room struct {
 	Description string
 	Monster     *Monster // Pointer to a monster, if present
+	Weapon      *Weapon  // Pointer to a weapon, if present
 }
 
 // Dungeon represents the entire dungeon
@@ -53,6 +61,7 @@ func main() {
 		HitPoints: 100,
 		Mana:      50,
 		Strength:  10,
+		Weapon:    &Weapon{Name: "Rusty Sword", Damage: 5, Accuracy: 80}, // Starting weapon
 	}
 
 	// Define available spells
@@ -71,6 +80,19 @@ func main() {
 		currentRoom := dungeon.Rooms[dungeon.CurrentRoom]
 		fmt.Println(currentRoom.Description)
 
+		// Check if there's a weapon in the room
+		if currentRoom.Weapon != nil {
+			fmt.Printf("You found a %s!\n", currentRoom.Weapon.Name)
+			fmt.Println("Do you want to equip it? (y/n)")
+			var choice string
+			fmt.Scanln(&choice)
+			if choice == "y" {
+				player.Weapon = currentRoom.Weapon
+				currentRoom.Weapon = nil // Remove the weapon from the room
+				fmt.Printf("You equipped the %s.\n", player.Weapon.Name)
+			}
+		}
+
 		// Check if there's a monster in the room
 		if currentRoom.Monster != nil {
 			monster := currentRoom.Monster
@@ -84,6 +106,7 @@ func main() {
 				// Display the current state
 				fmt.Printf("Your HP: %d, Mana: %d\n", player.HitPoints, player.Mana)
 				fmt.Printf("%s's HP: %d\n", monster.Name, monster.HitPoints)
+				fmt.Printf("Equipped Weapon: %s (Damage: %d, Accuracy: %d%%)\n", player.Weapon.Name, player.Weapon.Damage, player.Weapon.Accuracy)
 
 				// Player's turn
 				fmt.Println("What do you want to do?")
@@ -97,9 +120,14 @@ func main() {
 				switch choice {
 				case 1:
 					// Attack the monster
-					damage := player.Strength
-					monster.HitPoints -= damage
-					fmt.Printf("You deal %d damage to the %s.\n", damage, monster.Name)
+					hit := rand.Intn(100) < player.Weapon.Accuracy
+					if hit {
+						damage := player.Weapon.Damage
+						monster.HitPoints -= damage
+						fmt.Printf("You deal %d damage to the %s with your %s.\n", damage, monster.Name, player.Weapon.Name)
+					} else {
+						fmt.Println("Your attack missed!")
+					}
 				case 2:
 					// Use Mana
 					fmt.Println("Choose a spell:")
@@ -225,6 +253,7 @@ func generateDungeon() Dungeon {
 		rooms[i] = &Room{
 			Description: fmt.Sprintf("You are in room %d.", i+1),
 			Monster:     generateMonsterForRoom(),
+			Weapon:      generateWeaponForRoom(),
 		}
 	}
 
@@ -241,4 +270,20 @@ func generateMonsterForRoom() *Monster {
 	}
 	monster := generateMonster()
 	return &monster
+}
+
+// generateWeaponForRoom generates a weapon for a room, or nil if no weapon
+func generateWeaponForRoom() *Weapon {
+	if rand.Intn(3) == 0 {
+		return nil // No weapon in this room
+	}
+	weapons := []Weapon{
+		{Name: "Rusty Dagger", Damage: 3, Accuracy: 90},
+		{Name: "Iron Mace", Damage: 6, Accuracy: 80},
+		{Name: "Elven Bow", Damage: 5, Accuracy: 85},
+		{Name: "Enchanted Staff", Damage: 4, Accuracy: 75},
+		// Add more weapons as needed
+	}
+	weapon := weapons[rand.Intn(len(weapons))]
+	return &weapon
 }
