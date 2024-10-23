@@ -10,6 +10,7 @@ import (
 type Character struct {
 	Name      string
 	HitPoints int
+	MaxHitPoints int
 	Mana      int
 	Strength  int
 	Weapon    *Weapon // Pointer to the character's current weapon
@@ -59,6 +60,7 @@ func main() {
 	player := Character{
 		Name:      "Player",
 		HitPoints: 100,
+		MaxHitPoints: 100,
 		Mana:      50,
 		Strength:  10,
 		Weapon:    &Weapon{Name: "Rusty Sword", Damage: 5, Accuracy: 80}, // Starting weapon
@@ -76,6 +78,21 @@ func main() {
 
 	// Game loop
 	for {
+		// Regenerate hit points over time
+		if player.HitPoints < player.MaxHitPoints {
+			player.HitPoints += 1
+			if player.HitPoints > player.MaxHitPoints {
+				player.HitPoints = player.MaxHitPoints
+			}
+		}
+
+		// Check if the player is dead
+		if player.HitPoints <= 0 {
+			fmt.Println("You have died a glorious death!")
+			printDeathAsciiArt()
+			break
+		}
+
 		// Display the current room's description
 		currentRoom := dungeon.Rooms[dungeon.CurrentRoom]
 		fmt.Println(currentRoom.Description)
@@ -287,4 +304,17 @@ func generateWeaponForRoom() *Weapon {
 	}
 	weapon := weapons[rand.Intn(len(weapons))]
 	return &weapon
+}
+
+// printDeathAsciiArt prints an ASCII art representation of the player's death
+func printDeathAsciiArt() {
+	deathArt := `
+    _____
+   /     \
+  | () () |
+   \  ^  /
+    |||||
+    |||||
+`
+	fmt.Println(deathArt)
 }
