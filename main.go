@@ -8,18 +8,26 @@ import (
 
 // Character represents the player's character
 type Character struct {
-	Name     string
+	Name      string
 	HitPoints int
-	Mana     int
-	Strength int
+	Mana      int
+	Strength  int
 	// Add other attributes as needed
 }
 
 // Monster represents a random enemy
 type Monster struct {
-	Name     string
+	Name      string
 	HitPoints int
-	Strength int
+	Strength  int
+}
+
+// Spell represents a magical ability
+type Spell struct {
+	Name        string
+	ManaCost    int
+	DamageValue int
+	EffectValue int // For non-damaging spells like healing or buffs
 }
 
 func main() {
@@ -28,10 +36,17 @@ func main() {
 
 	// Create the player's character
 	player := Character{
-		Name:     "Player",
+		Name:      "Player",
 		HitPoints: 100,
-		Mana:     50,
-		Strength: 10,
+		Mana:      50,
+		Strength:  10,
+	}
+
+	// Define available spells
+	spells := []Spell{
+		{Name: "Magic Missile", ManaCost: 10, DamageValue: 20, EffectValue: 0},
+		{Name: "Protection from Evil", ManaCost: 15, DamageValue: 0, EffectValue: 10}, // Increase defense
+		// Add more spells as needed
 	}
 
 	// Game loop
@@ -64,8 +79,39 @@ func main() {
 				monster.HitPoints -= damage
 				fmt.Printf("You deal %d damage to the %s.\n", damage, monster.Name)
 			case 2:
-				// Use Mana (you can implement your own logic here)
-				fmt.Println("You use some of your Mana.")
+				// Use Mana
+				fmt.Println("Choose a spell:")
+				for i, spell := range spells {
+					fmt.Printf("%d. %s (Mana Cost: %d)", i+1, spell.Name, spell.ManaCost)
+					if spell.DamageValue > 0 {
+						fmt.Printf(", Damage: %d", spell.DamageValue)
+					} else if spell.EffectValue > 0 {
+						fmt.Printf(", Effect: %d", spell.EffectValue)
+					}
+					fmt.Println()
+				}
+				fmt.Print("Enter your choice: ")
+
+				var spellChoice int
+				fmt.Scanln(&spellChoice)
+
+				if spellChoice >= 1 && spellChoice <= len(spells) {
+					selectedSpell := spells[spellChoice-1]
+					if player.Mana >= selectedSpell.ManaCost {
+						player.Mana -= selectedSpell.ManaCost
+						if selectedSpell.DamageValue > 0 {
+							monster.HitPoints -= selectedSpell.DamageValue
+							fmt.Printf("You cast %s, dealing %d damage to the %s.\n", selectedSpell.Name, selectedSpell.DamageValue, monster.Name)
+						} else if selectedSpell.EffectValue > 0 {
+							// Apply the effect (e.g., increase defense)
+							fmt.Printf("You cast %s, increasing your defense by %d.\n", selectedSpell.Name, selectedSpell.EffectValue)
+						}
+					} else {
+						fmt.Println("You don't have enough Mana to cast that spell.")
+					}
+				} else {
+					fmt.Println("Invalid spell choice.")
+				}
 			default:
 				fmt.Println("Invalid choice.")
 			}
@@ -96,8 +142,8 @@ func generateMonster() Monster {
 	strength := rand.Intn(10) + 1
 
 	return Monster{
-		Name:     name,
+		Name:      name,
 		HitPoints: hitPoints,
-		Strength: strength,
+		Strength:  strength,
 	}
 }
