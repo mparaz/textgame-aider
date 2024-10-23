@@ -17,9 +17,10 @@ type Character struct {
 
 // Monster represents a random enemy
 type Monster struct {
-	Name      string
-	HitPoints int
-	Strength  int
+	Name        string
+	Description string
+	HitPoints   int
+	Strength    int
 }
 
 // Spell represents a magical ability
@@ -55,7 +56,8 @@ func main() {
 		monster := generateMonster()
 
 		// Display the monster's information
-		fmt.Printf("A %s appears! (HP: %d, Strength: %d)\n", monster.Name, monster.HitPoints, monster.Strength)
+		fmt.Printf("%s\n", monster.Description)
+		fmt.Printf("(HP: %d, Strength: %d)\n", monster.HitPoints, monster.Strength)
 
 		// Battle loop
 		for player.HitPoints > 0 && monster.HitPoints > 0 {
@@ -136,14 +138,30 @@ func main() {
 
 // generateMonster generates a random monster
 func generateMonster() Monster {
+	// Define monster types and descriptions
+	monsterTypes := []struct {
+		Name        string
+		Description string
+	}{
+		{"Goblin", "A small, green-skinned creature with a mischievous grin and a sharp dagger."},
+		{"Orc", "A towering, muscular humanoid with a fierce expression and a massive club."},
+		{"Skeleton", "A reanimated skeleton, its bones clattering as it moves, wielding a rusty sword."},
+		{"Slime", "A gelatinous blob that oozes across the ground, leaving a trail of slime behind."},
+		{"Dragon", "A majestic, winged beast with scales that glisten like gems and a maw that breathes fire."},
+		// Add more monster types as needed
+	}
+
+	// Select a random monster type
+	monsterType := monsterTypes[rand.Intn(len(monsterTypes))]
+
 	// Generate random monster attributes
-	name := fmt.Sprintf("Monster %d", rand.Intn(100))
 	hitPoints := rand.Intn(50) + 10
 	strength := rand.Intn(10) + 1
 
 	return Monster{
-		Name:      name,
-		HitPoints: hitPoints,
-		Strength:  strength,
+		Name:        monsterType.Name,
+		Description: monsterType.Description,
+		HitPoints:   hitPoints,
+		Strength:    strength,
 	}
 }
