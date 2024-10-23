@@ -22,6 +22,8 @@ type Monster struct {
 	Description string
 	HitPoints   int
 	Strength    int
+	CanCastSpells bool
+	Spells      []Spell
 }
 
 // Spell represents a magical ability
@@ -186,9 +188,22 @@ func main() {
 
 				// Monster's turn
 				if monster.HitPoints > 0 {
-					damage := monster.Strength
-					player.HitPoints -= damage
-					fmt.Printf("The %s deals %d damage to you.\n", monster.Name, damage)
+					if monster.CanCastSpells && len(monster.Spells) > 0 {
+						// Monster casts a spell
+						spell := monster.Spells[rand.Intn(len(monster.Spells))]
+						if spell.DamageValue > 0 {
+							player.HitPoints -= spell.DamageValue
+							fmt.Printf("The %s casts %s, dealing %d damage to you.\n", monster.Name, spell.Name, spell.DamageValue)
+						} else if spell.EffectValue > 0 {
+							// Apply the effect (e.g., increase defense)
+							fmt.Printf("The %s casts %s, increasing its defense by %d.\n", monster.Name, spell.Name, spell.EffectValue)
+						}
+					} else {
+						// Monster attacks with its strength
+						damage := monster.Strength
+						player.HitPoints -= damage
+						fmt.Printf("The %s deals %d damage to you.\n", monster.Name, damage)
+					}
 				}
 			}
 
@@ -238,12 +253,15 @@ func generateMonster() Monster {
 	monsterTypes := []struct {
 		Name        string
 		Description string
+		BaseHitPoints int
+		CanCastSpells bool
+		Spells      []Spell
 	}{
-		{"Goblin", "A small, green-skinned creature with a mischievous grin and a sharp dagger."},
-		{"Orc", "A towering, muscular humanoid with a fierce expression and a massive club."},
-		{"Skeleton", "A reanimated skeleton, its bones clattering as it moves, wielding a rusty sword."},
-		{"Slime", "A gelatinous blob that oozes across the ground, leaving a trail of slime behind."},
-		{"Dragon", "A majestic, winged beast with scales that glisten like gems and a maw that breathes fire."},
+		{"Goblin", "A small, green-skinned creature with a mischievous grin and a sharp dagger.", 20, false, nil},
+		{"Orc", "A towering, muscular humanoid with a fierce expression and a massive club.", 40, false, nil},
+		{"Skeleton", "A reanimated skeleton, its bones clattering as it moves, wielding a rusty sword.", 30, false, nil},
+		{"Slime", "A gelatinous blob that oozes across the ground, leaving a trail of slime behind.", 25, false, nil},
+		{"Dragon", "A majestic, winged beast with scales that glisten like gems and a maw that breathes fire.", 80, true, []Spell{{Name: "Fire Breath", ManaCost: 0, DamageValue: 20, EffectValue: 0}}},
 		// Add more monster types as needed
 	}
 
@@ -251,14 +269,15 @@ func generateMonster() Monster {
 	monsterType := monsterTypes[rand.Intn(len(monsterTypes))]
 
 	// Generate random monster attributes
-	hitPoints := rand.Intn(50) + 10
 	strength := rand.Intn(10) + 1
 
 	return Monster{
 		Name:        monsterType.Name,
 		Description: monsterType.Description,
-		HitPoints:   hitPoints,
+		HitPoints:   monsterType.BaseHitPoints,
 		Strength:    strength,
+		CanCastSpells: monsterType.CanCastSpells,
+		Spells:      monsterType.Spells,
 	}
 }
 
