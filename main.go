@@ -31,6 +31,18 @@ type Spell struct {
 	EffectValue int // For non-damaging spells like healing or buffs
 }
 
+// Room represents a single room in the dungeon
+type Room struct {
+	Description string
+	Monster     *Monster // Pointer to a monster, if present
+}
+
+// Dungeon represents the entire dungeon
+type Dungeon struct {
+	Rooms       []*Room
+	CurrentRoom int
+}
+
 func main() {
 	// Seed the random number generator
 	rand.Seed(time.Now().UnixNano())
@@ -50,88 +62,126 @@ func main() {
 		// Add more spells as needed
 	}
 
+	// Generate a random dungeon
+	dungeon := generateDungeon()
+
 	// Game loop
 	for {
-		// Generate a random monster
-		monster := generateMonster()
+		// Display the current room's description
+		currentRoom := dungeon.Rooms[dungeon.CurrentRoom]
+		fmt.Println(currentRoom.Description)
 
-		// Display the monster's information
-		fmt.Printf("%s\n", monster.Description)
-		fmt.Printf("(HP: %d, Strength: %d)\n", monster.HitPoints, monster.Strength)
+		// Check if there's a monster in the room
+		if currentRoom.Monster != nil {
+			monster := currentRoom.Monster
 
-		// Battle loop
-		for player.HitPoints > 0 && monster.HitPoints > 0 {
-			// Display the current state
-			fmt.Printf("Your HP: %d, Mana: %d\n", player.HitPoints, player.Mana)
-			fmt.Printf("%s's HP: %d\n", monster.Name, monster.HitPoints)
+			// Display the monster's information
+			fmt.Printf("%s\n", monster.Description)
+			fmt.Printf("(HP: %d, Strength: %d)\n", monster.HitPoints, monster.Strength)
 
-			// Player's turn
-			fmt.Println("What do you want to do?")
-			fmt.Println("1. Attack")
-			fmt.Println("2. Use Mana")
-			fmt.Print("Enter your choice: ")
+			// Battle loop
+			for player.HitPoints > 0 && monster.HitPoints > 0 {
+				// Display the current state
+				fmt.Printf("Your HP: %d, Mana: %d\n", player.HitPoints, player.Mana)
+				fmt.Printf("%s's HP: %d\n", monster.Name, monster.HitPoints)
 
-			var choice int
-			fmt.Scanln(&choice)
-
-			switch choice {
-			case 1:
-				// Attack the monster
-				damage := player.Strength
-				monster.HitPoints -= damage
-				fmt.Printf("You deal %d damage to the %s.\n", damage, monster.Name)
-			case 2:
-				// Use Mana
-				fmt.Println("Choose a spell:")
-				for i, spell := range spells {
-					fmt.Printf("%d. %s (Mana Cost: %d)", i+1, spell.Name, spell.ManaCost)
-					if spell.DamageValue > 0 {
-						fmt.Printf(", Damage: %d", spell.DamageValue)
-					} else if spell.EffectValue > 0 {
-						fmt.Printf(", Effect: %d", spell.EffectValue)
-					}
-					fmt.Println()
-				}
+				// Player's turn
+				fmt.Println("What do you want to do?")
+				fmt.Println("1. Attack")
+				fmt.Println("2. Use Mana")
 				fmt.Print("Enter your choice: ")
 
-				var spellChoice int
-				fmt.Scanln(&spellChoice)
+				var choice int
+				fmt.Scanln(&choice)
 
-				if spellChoice >= 1 && spellChoice <= len(spells) {
-					selectedSpell := spells[spellChoice-1]
-					if player.Mana >= selectedSpell.ManaCost {
-						player.Mana -= selectedSpell.ManaCost
-						if selectedSpell.DamageValue > 0 {
-							monster.HitPoints -= selectedSpell.DamageValue
-							fmt.Printf("You cast %s, dealing %d damage to the %s.\n", selectedSpell.Name, selectedSpell.DamageValue, monster.Name)
-						} else if selectedSpell.EffectValue > 0 {
-							// Apply the effect (e.g., increase defense)
-							fmt.Printf("You cast %s, increasing your defense by %d.\n", selectedSpell.Name, selectedSpell.EffectValue)
+				switch choice {
+				case 1:
+					// Attack the monster
+					damage := player.Strength
+					monster.HitPoints -= damage
+					fmt.Printf("You deal %d damage to the %s.\n", damage, monster.Name)
+				case 2:
+					// Use Mana
+					fmt.Println("Choose a spell:")
+					for i, spell := range spells {
+						fmt.Printf("%d. %s (Mana Cost: %d)", i+1, spell.Name, spell.ManaCost)
+						if spell.DamageValue > 0 {
+							fmt.Printf(", Damage: %d", spell.DamageValue)
+						} else if spell.EffectValue > 0 {
+							fmt.Printf(", Effect: %d", spell.EffectValue)
+						}
+						fmt.Println()
+					}
+					fmt.Print("Enter your choice: ")
+
+					var spellChoice int
+					fmt.Scanln(&spellChoice)
+
+					if spellChoice >= 1 && spellChoice <= len(spells) {
+						selectedSpell := spells[spellChoice-1]
+						if player.Mana >= selectedSpell.ManaCost {
+							player.Mana -= selectedSpell.ManaCost
+							if selectedSpell.DamageValue > 0 {
+								monster.HitPoints -= selectedSpell.DamageValue
+								fmt.Printf("You cast %s, dealing %d damage to the %s.\n", selectedSpell.Name, selectedSpell.DamageValue, monster.Name)
+							} else if selectedSpell.EffectValue > 0 {
+								// Apply the effect (e.g., increase defense)
+								fmt.Printf("You cast %s, increasing your defense by %d.\n", selectedSpell.Name, selectedSpell.EffectValue)
+							}
+						} else {
+							fmt.Println("You don't have enough Mana to cast that spell.")
 						}
 					} else {
-						fmt.Println("You don't have enough Mana to cast that spell.")
+						fmt.Println("Invalid spell choice.")
 					}
-				} else {
-					fmt.Println("Invalid spell choice.")
+				default:
+					fmt.Println("Invalid choice.")
 				}
-			default:
-				fmt.Println("Invalid choice.")
+
+				// Monster's turn
+				if monster.HitPoints > 0 {
+					damage := monster.Strength
+					player.HitPoints -= damage
+					fmt.Printf("The %s deals %d damage to you.\n", monster.Name, damage)
+				}
 			}
 
-			// Monster's turn
-			if monster.HitPoints > 0 {
-				damage := monster.Strength
-				player.HitPoints -= damage
-				fmt.Printf("The %s deals %d damage to you.\n", monster.Name, damage)
+			// Check the outcome of the battle
+			if player.HitPoints > 0 {
+				fmt.Println("You defeated the monster!")
+				currentRoom.Monster = nil // Remove the monster from the room
+			} else {
+				fmt.Println("You were defeated by the monster.")
+				break
 			}
 		}
 
-		// Check the outcome of the battle
-		if player.HitPoints > 0 {
-			fmt.Println("You defeated the monster!")
-		} else {
-			fmt.Println("You were defeated by the monster.")
-			break
+		// Ask the player for their next move
+		fmt.Println("What do you want to do next?")
+		fmt.Println("1. Go forward")
+		fmt.Println("2. Go backward")
+		fmt.Println("3. Turn left")
+		fmt.Println("4. Turn right")
+		fmt.Print("Enter your choice: ")
+
+		var choice int
+		fmt.Scanln(&choice)
+
+		switch choice {
+		case 1:
+			// Go forward
+			dungeon.CurrentRoom = (dungeon.CurrentRoom + 1) % len(dungeon.Rooms)
+		case 2:
+			// Go backward
+			dungeon.CurrentRoom = (dungeon.CurrentRoom - 1 + len(dungeon.Rooms)) % len(dungeon.Rooms)
+		case 3:
+			// Turn left
+			// Implement your logic for turning left
+		case 4:
+			// Turn right
+			// Implement your logic for turning right
+		default:
+			fmt.Println("Invalid choice.")
 		}
 	}
 }
@@ -164,4 +214,30 @@ func generateMonster() Monster {
 		HitPoints:   hitPoints,
 		Strength:    strength,
 	}
+}
+
+// generateDungeon generates a random dungeon
+func generateDungeon() Dungeon {
+	numRooms := rand.Intn(10) + 5 // Generate between 5 and 14 rooms
+
+	rooms := make([]*Room, numRooms)
+	for i := range rooms {
+		rooms[i] = &Room{
+			Description: fmt.Sprintf("You are in room %d.", i+1),
+			Monster:     generateMonsterForRoom(),
+		}
+	}
+
+	return Dungeon{
+		Rooms:       rooms,
+		CurrentRoom: 0,
+	}
+}
+
+// generateMonsterForRoom generates a monster for a room, or nil if no monster
+func generateMonsterForRoom() *Monster {
+	if rand.Intn(2) == 0 {
+		return nil // No monster in this room
+	}
+	return &generateMonster()
 }
