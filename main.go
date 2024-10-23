@@ -239,5 +239,6 @@ func generateMonsterForRoom() *Monster {
 	if rand.Intn(2) == 0 {
 		return nil // No monster in this room
 	}
-	return &generateMonster()
+	monster := generateMonster()
+	return &monster
 }
