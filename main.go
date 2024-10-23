@@ -44,6 +44,10 @@ func main() {
 
 		// Battle loop
 		for player.HitPoints > 0 && monster.HitPoints > 0 {
+			// Display the current state
+			fmt.Printf("Your HP: %d, Mana: %d\n", player.HitPoints, player.Mana)
+			fmt.Printf("%s's HP: %d\n", monster.Name, monster.HitPoints)
+
 			// Player's turn
 			fmt.Println("What do you want to do?")
 			fmt.Println("1. Attack")
